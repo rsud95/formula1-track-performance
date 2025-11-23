@@ -79,7 +79,10 @@ function App() {
             }
           </Center>
             {qualiFetched && <Box>
-              <Table data={qualiResults} />
+              <Table
+              captionSide='top'
+              striped='odd'
+              data={qualiResults.race} />
             </Box>
             }          
         </Container>
