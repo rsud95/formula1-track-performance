@@ -3,8 +3,8 @@ import reactLogo from './assets/react.svg'
 import viteLogo from '/vite.svg'
 import './App.css'
 import '@mantine/core/styles.css'
-import { Center, createTheme, MantineProvider, Autocomplete, Box, Container, Typography } from '@mantine/core';
-import { fetchDrivers, fetchTracks } from '../api/dataviewerService'
+import { Center, createTheme, MantineProvider, Autocomplete, Box, Container, Typography, Table } from '@mantine/core';
+import { fetchDrivers, fetchQualiResults, fetchTracks } from '../api/dataviewerService'
 
 const theme = createTheme({
   fontFamily: 'Open Sans, sans-serif',
@@ -12,12 +12,15 @@ const theme = createTheme({
 });
 
 function App() {
-  const [count, setCount] = useState(0);
   const [driverList, setDrivers] = useState([]);
   const [trackList, setTrackList] = useState([]);
   const [driversFetched, setDriversFetched] = useState(false);
   const [tracksFetched, setTracksFetched] = useState(false);
   const [driverSelected, setDriverSelection] = useState({id: null, selected: false});
+  const [trackSelected, setTrackSelection] = useState({id: null, selected: false});
+  const [qualiResults, setQualiResults] = useState(null);
+  const [qualiFetched, setQualiResultsFetched] = useState(false);
+
 
   const baseURL = 'https://api.jolpi.ca'
 
@@ -37,6 +40,15 @@ function App() {
     setDriverSelection({id: selectedID, selected: true});
     setTrackList(await fetchTracks(baseURL, selectedID)
     ,setTracksFetched(true));
+  }
+
+  const handleTrackSelect = async (e) => {
+    // Find corresponding track ID
+    let selectedID = trackList.keys().find(key => trackList.get(key) === e);
+    setTrackSelection({id: selectedID, selected: true});
+    setQualiResults(await fetchQualiResults(baseURL, driverSelected.id, selectedID),
+    setQualiResultsFetched(true));
+    console.log(qualiResults)
   }
 
   return (
@@ -60,11 +72,16 @@ function App() {
                 label="Select a track"
                 selectFirstOptionOnChange
                 data={[...trackList.values()]}
+                onOptionSubmit={handleTrackSelect}
               ></Autocomplete>
               }
             </Box>
             }
           </Center>
+            {qualiFetched && <Box>
+              <Table data={qualiResults} />
+            </Box>
+            }          
         </Container>
       </>
     </MantineProvider>
