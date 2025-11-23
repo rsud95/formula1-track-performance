@@ -4,7 +4,7 @@ import viteLogo from '/vite.svg'
 import './App.css'
 import '@mantine/core/styles.css'
 import { Center, createTheme, MantineProvider, Autocomplete, Box, Container, Typography } from '@mantine/core';
-import { fetchDrivers } from '../api/dataviewerService'
+import { fetchDrivers, fetchTracks } from '../api/dataviewerService'
 
 const theme = createTheme({
   fontFamily: 'Open Sans, sans-serif',
@@ -13,8 +13,11 @@ const theme = createTheme({
 
 function App() {
   const [count, setCount] = useState(0);
-  const [driverList, setDrivers] = useState(null);
-  const [driversFetched, setDriversFetched] = useState(false)
+  const [driverList, setDrivers] = useState([]);
+  const [trackList, setTrackList] = useState([]);
+  const [driversFetched, setDriversFetched] = useState(false);
+  const [tracksFetched, setTracksFetched] = useState(false);
+  const [driverSelected, setDriverSelection] = useState({id: null, selected: false});
 
   const baseURL = 'https://api.jolpi.ca'
 
@@ -26,8 +29,15 @@ function App() {
       }
     }
     updateDrivers();
-    console.log(driverList);
   });
+
+  const handleDriverSelect = async (e) => {
+    // Find corresponding ID
+    let selectedID = driverList.keys().find(key => driverList.get(key) === e);
+    setDriverSelection({id: selectedID, selected: true});
+    setTrackList(await fetchTracks(baseURL, selectedID)
+    ,setTracksFetched(true));
+  }
 
   return (
     <MantineProvider theme={theme}>
@@ -37,13 +47,23 @@ function App() {
             <h1>F1 Driver Historical Performance per Track</h1>
           </Box>
           <Center>
-            <Box w={300}>
+            {driversFetched && <Box w={300}>
               <Autocomplete
                 label="Driver Name Select"
                 placeholder="Please enter a driver name"
-                data={driverList}
+                selectFirstOptionOnChange
+                limit={100}
+                data={[...driverList.values()]}
+                onOptionSubmit={handleDriverSelect}
               ></Autocomplete>
+              {driverSelected.selected && tracksFetched && <Autocomplete
+                label="Select a track"
+                selectFirstOptionOnChange
+                data={[...trackList.values()]}
+              ></Autocomplete>
+              }
             </Box>
+            }
           </Center>
         </Container>
       </>
