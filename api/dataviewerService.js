@@ -1,12 +1,10 @@
 /**
 Functions to make calls to F1 ergast open API
 to retrieve relevant data
-**/
-
-/** API Limit is 100 drivers per GET request 
+ API Limit is 100 drivers per GET request 
  * so repeat 9 times to get all drivers
- * FUTURE: Implement a cache since new drivers aren't added often**/
-
+ * FUTURE: Implement a cache since new drivers aren't added often
+ * **/
 export const fetchDrivers = async (baseURL) => {
     let names = new Map();
     for (let n = 0; n < 9; n++) {
@@ -36,11 +34,15 @@ export const fetchDrivers = async (baseURL) => {
     return names
 }
 
-/* Fetch circuitName and circuitIDs that the requested driver has participated in
-using a specific API route
-Set API Limit to 100 to ensure only a single API call)
-API route /ergast/f1/drivers/driverID/circuits*/
-
+/**
+ * @param {*} baseURL API base URL
+ * @param {*} driverID Selected driver
+ * @returns 
+ * Fetch circuitName and circuitIDs that the requested driver has participated in
+* using a specific API route
+* Set API Limit to 100 to ensure only a single API call)
+* API route /ergast/f1/drivers/driverID/circuits
+ */
 export const fetchTracks = async (baseURL, driverID) => {
     let tracks = new Map();
     try {
@@ -67,6 +69,16 @@ export const fetchTracks = async (baseURL, driverID) => {
     return tracks;
 };
 
+/**
+ * 
+ * @param {*} baseURL Base URL for API
+ * @param {*} season Year the race took place
+ * @param {*} driverID Selected driver
+ * @param {*} round Selected track
+ * @param {*} constructor Driver's team
+ * @returns Object that contains the driver's finishing position, as well
+ * as relevant team mate data (Grid pos, Finishing Pos, Name)
+ */
 export const fetchRaceResults = async(baseURL, season, driverID, round, constructor) => {
     let finishPositions = {
         finishingPos: null,
@@ -118,6 +130,18 @@ export const fetchRaceResults = async(baseURL, season, driverID, round, construc
     return finishPositions;
 }
 
+/** 
+
+ * @param {*} baseURL API base URL
+ * @param {*} driverID Selected driver
+ * @param {*} trackID Selected track
+ * @returns 
+ * 
+ * With the selected driver ID and track ID, an API call is made to the driver's
+ * qualifying records. Then, filtered by track ID.
+ * For each match, a nested API call is made (fetchRaceResults), which pulls the
+ * race data for the specific year.
+ */
 export const fetchQualiResults = async(baseURL, driverID, trackID) => {
     const qualiPerformance = {
         caption: `Historical Qualifying Performances`,

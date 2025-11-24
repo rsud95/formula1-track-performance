@@ -1,11 +1,9 @@
 import { useState, useEffect } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
 import './App.css'
 import '@mantine/core/styles.css'
-import { Box, Center, createTheme, MantineProvider, LoadingOverlay, Autocomplete, Paper, Container, Space, Text, Title, Typography, Table, Tabs } from '@mantine/core';
+import { Autocomplete, Box, Center, Container, createTheme, LoadingOverlay, MantineProvider, Paper, HoverCard, Space, Table, Tabs, Text, Title, Typography} from '@mantine/core';
 import { fetchDrivers, fetchQualiResults, fetchTracks } from '../api/dataviewerService'
-import { IconStopwatch, IconFlag } from '@tabler/icons-react'
+import { IconStopwatch, IconFlag, IconInfoSquareRounded } from '@tabler/icons-react'
 
 const theme = createTheme({
   fontFamily: 'Open Sans, sans-serif',
@@ -64,6 +62,10 @@ function App() {
     e === 'qualifying' ? setTabValue({qualifying: true, race: false}) : setTabValue({qualifying: false, race: true})
   }
 
+  const handleDriverInfo = (e) => {
+    console.log('Driver info requested')
+  }
+
   return (
     <MantineProvider theme={theme}>
       <>
@@ -79,7 +81,7 @@ function App() {
             </Title>
             <Space h="xs"/>
             <Text size='md'>
-              The following site uses the open source <a href='https://github.com/jolpica/jolpica-f1/tree/main'>jolpi.ca</a> F1 API to retrieve historical race data, with a focus on a driver's performance across tracks over several years
+              This tool uses the open source <a href='https://github.com/jolpica/jolpica-f1/tree/main'>jolpi.ca</a> F1 API to retrieve historical race data, with a focus on a driver's performance across tracks over several years
             </Text>
             <Space h="xs"/>
             {isLoading && <LoadingOverlay
@@ -90,8 +92,10 @@ function App() {
             <Center>
               {driversFetched && <Box w={300}>
                 <Autocomplete
-                  label="Driver Name Select"
+                  aria-label="Driver Name Select"
                   placeholder="Please enter a driver name"
+                  rightSection={driverSelected.selected && <IconInfoSquareRounded onClick={handleDriverInfo}>?</IconInfoSquareRounded>}
+                  rightSectionPointerEvents='auto'
                   selectFirstOptionOnChange
                   limit={100}
                   data={[...driverList.values()]}
@@ -99,7 +103,7 @@ function App() {
                 />
                 <Space h="xs"/>
                 {driverSelected.selected && tracksFetched && <Autocomplete
-                  label="Select a track"
+                  aria-label="Select a track"
                   placeholder="Please enter a track name"
                   selectFirstOptionOnChange
                   data={[...trackList.values()]}
