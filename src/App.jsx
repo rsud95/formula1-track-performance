@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react'
 import './App.css'
 import '@mantine/core/styles.css'
-import { Autocomplete, Box, Center, Container, createTheme, LoadingOverlay, MantineProvider, Paper, HoverCard, Space, Table, Tabs, Text, Title, Typography} from '@mantine/core';
-import { fetchDrivers, fetchQualiResults, fetchTracks } from '../api/dataviewerService'
+import { Autocomplete, Box, Center, Container, createTheme, LoadingOverlay, MantineProvider, Paper, HoverCard, Space, Table, Tabs, Text, Title, Typography, Popover, PopoverTarget, PopoverDropdown} from '@mantine/core';
+import { fetchDriverInfo, fetchDrivers, fetchQualiResults, fetchTrackInfo, fetchTracks } from '../api/dataviewerService'
 import { IconStopwatch, IconFlag, IconInfoSquareRounded } from '@tabler/icons-react'
 
 const theme = createTheme({
@@ -17,6 +17,8 @@ function App() {
   const [driversFetched, setDriversFetched] = useState(false);
   const [tracksFetched, setTracksFetched] = useState(false);
   const [driverSelected, setDriverSelection] = useState({id: null, selected: false});
+  const [driverInfo, setDriverInfo] = useState(null);
+  const [trackInfo, setTrackInfo] = useState(null);
   const [trackSelected, setTrackSelection] = useState({id: null, selected: false});
   const [qualiResults, setQualiResults] = useState(null);
   const [qualiFetched, setQualiResultsFetched] = useState(false);
@@ -40,7 +42,9 @@ function App() {
     setIsLoading(true);
     // Find corresponding ID
     let selectedID = driverList.keys().find(key => driverList.get(key) === e);
-    setDriverSelection({id: selectedID, selected: true});
+    setDriverSelection({id: selectedID, selected: true},
+      setDriverInfo(await fetchDriverInfo(baseURL, selectedID))
+    );
     setTrackList(await fetchTracks(baseURL, selectedID)
     ,setTracksFetched(true),
     setIsLoading(false));
@@ -50,20 +54,17 @@ function App() {
     setIsLoading(true);
     // Find corresponding track ID
     let selectedID = trackList.keys().find(key => trackList.get(key) === e);
-    setTrackSelection({id: selectedID, selected: true});
+    setTrackSelection({id: selectedID, selected: true},
+      setTrackInfo(await fetchTrackInfo(baseURL, selectedID))
+    );
     setQualiResults(await fetchQualiResults(baseURL, driverSelected.id, selectedID),
     setQualiResultsFetched(true),
     setIsLoading(false));
-    console.log(qualiResults)
   }
 
   const handleTabChange = (e) => {
     // Set states for tabs
     e === 'qualifying' ? setTabValue({qualifying: true, race: false}) : setTabValue({qualifying: false, race: true})
-  }
-
-  const handleDriverInfo = (e) => {
-    console.log('Driver info requested')
   }
 
   return (
@@ -94,7 +95,26 @@ function App() {
                 <Autocomplete
                   aria-label="Driver Name Select"
                   placeholder="Please enter a driver name"
-                  rightSection={driverSelected.selected && <IconInfoSquareRounded onClick={handleDriverInfo}>?</IconInfoSquareRounded>}
+                  rightSection={driverSelected.selected && 
+                    <Popover
+                      width='auto'
+                      position='right'
+                    >
+                      <PopoverTarget>
+                        <IconInfoSquareRounded>?</IconInfoSquareRounded>
+                      </PopoverTarget>
+                      <PopoverDropdown>
+                        <Text size="xs">
+                          <b>Date of Birth:</b> {driverInfo.dob}
+                        </Text>
+                        <Text size="xs">
+                          <b>Nationality:</b> {driverInfo.nationality}
+                        </Text>
+                        <Text size="xs">
+                          <b>Wiki:</b> <a href={driverInfo.wikiLink}>More Info</a>
+                        </Text>
+                      </PopoverDropdown>
+                    </Popover>}
                   rightSectionPointerEvents='auto'
                   selectFirstOptionOnChange
                   limit={100}
@@ -108,6 +128,24 @@ function App() {
                   selectFirstOptionOnChange
                   data={[...trackList.values()]}
                   onOptionSubmit={handleTrackSelect}
+                  rightSection={trackSelected.selected && 
+                    <Popover
+                      width='auto'
+                      position='right'
+                    >
+                      <PopoverTarget>
+                        <IconInfoSquareRounded>?</IconInfoSquareRounded>
+                      </PopoverTarget>
+                      <PopoverDropdown>
+                        <Text size="xs">
+                          <b>Location:</b> {trackInfo.location}
+                        </Text>
+                        <Text size="xs">
+                          <b>Wiki:</b> <a href={trackInfo.wikiLink}>More Info</a>
+                        </Text>
+                      </PopoverDropdown>
+                    </Popover>}
+                  rightSectionPointerEvents='auto'
                 />
                 }
               </Box>

@@ -33,6 +33,83 @@ export const fetchDrivers = async (baseURL) => {
     }
     return names
 }
+/**
+ * 
+ * @param {*} baseURL API URL
+ * @param {*} driverID Driver to retrieve info from
+ * @returns 
+ * Single API call to driver's info page to retrieve DOB, Nationality and Wiki link
+ * for further info
+ */
+
+export const fetchDriverInfo = async (baseURL, driverID) => {
+    let driverDetails = {
+        nationality: "",
+        dob: "",
+        wikiLink: "",
+    }
+    try {
+    const driverInfo = await fetch(baseURL + `/ergast/f1/drivers/${driverID}`, {
+        method:'GET',
+        headers: {
+            'Accept' : 'application/json'
+        }
+    })
+
+    if(!driverInfo.ok) {
+        throw new Error(`Server error. Response code ${driverInfo.status}`)
+    };
+
+    const unfilteredDriverInfo = await driverInfo.json();
+    driverDetails.nationality = unfilteredDriverInfo.MRData.DriverTable.Drivers[0].nationality;
+    driverDetails.dob = unfilteredDriverInfo.MRData.DriverTable.Drivers[0].dateOfBirth;
+    driverDetails.wikiLink = unfilteredDriverInfo.MRData.DriverTable.Drivers[0].url;
+
+    } catch (error) {
+        console.error("Error during driver info retrieval", error);
+        throw error;
+    }
+    return driverDetails;
+}
+
+/**
+ * 
+ * @param {*} baseURL API URL
+ * @param {*} trackID Track to retrieve info about
+ * @returns Object with track info
+ * Single API call to a track's info page to retrieve location and Wiki URL
+ * Re-purposed fetchDriverInfo func 
+ */
+
+export const fetchTrackInfo = async (baseURL, trackID) => {
+    let trackDetails = {
+        location: "",
+        wikiLink: "",
+    }
+    try {
+    const trackInfo = await fetch(baseURL + `/ergast/f1/circuits/${trackID}`, {
+        method:'GET',
+        headers: {
+            'Accept' : 'application/json'
+        }
+    })
+
+    if(!trackInfo.ok) {
+        throw new Error(`Server error. Response code ${trackInfo.status}`)
+    };
+
+    const unfilteredTrackInfo = await trackInfo.json();
+    trackDetails.location = unfilteredTrackInfo.MRData.CircuitTable.Circuits[0].Location.locality + ', '
+    + unfilteredTrackInfo.MRData.CircuitTable.Circuits[0].Location.country;
+
+    trackDetails.wikiLink = unfilteredTrackInfo.MRData.CircuitTable.Circuits[0].url;
+
+    } catch (error) {
+        console.error("Error during track info retrieval", error);
+        throw error;
+    }
+    return trackDetails;
+}
 
 /**
  * @param {*} baseURL API base URL
